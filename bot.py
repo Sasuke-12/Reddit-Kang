@@ -88,10 +88,13 @@ async def click_handler(event):
     main_channel = await bot.get_entity(f"t.me/{main_channel_id}")
     message = event.message_id
     userid = event.query.user_id
-    print(userid)
+#     print(userid)
     user_info = await bot.get_entity(userid)
     messages = await bot.get_messages(channel,ids=message)
-    msg_txt = messages.message
+    try: 
+        msg_txt = messages.message
+    except:
+        pass
     if event.data == b'approve':
         await bot.send_message(main_channel,messages,buttons = [Button.inline("🍆 0", data="e1:0:0:0"), Button.inline("❤️ 0", data="e2:0:0:0"), Button.inline("👎🏻 0", data="e3:0:0:0")])
         await bot.edit_message(channel,message,f"{msg_txt}\n\nthis message was posted by @{user_info.username}")
