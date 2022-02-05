@@ -25,16 +25,17 @@ async def kang_reddit():
         async for i in new:
             if i.url != last:
                 try:
+                    split = i.title.split(" ")
                     await bot.send_message(
                     channel, 
                     f"{i.title}\n@{main_channel_id}", 
-                    file=i.url,
-                    buttons=[Button.inline('approve', b'approve'),Button.inline('reject', b'reject')]
+                    file=i.url
                 )
                     await bot.send_message(
                     channel,
                     f"{i.title}\n@{main_channel_id}",
                     file=i.url,
+                    name=split[0],
                     force_document=True,
                     buttons=[Button.inline('approve', b'approve'),Button.inline('reject', b'reject')]
                 )
