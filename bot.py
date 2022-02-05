@@ -27,12 +27,13 @@ async def kang_reddit():
                 try:
                     await bot.send_message(
                     channel, 
-                    f"{i.title}\n@{channel_id}", 
+                    f"{i.title}\n@{main_channel_id}", 
                     file=i.url,
+                    buttons=[Button.inline('approve', b'approve'),Button.inline('reject', b'reject')]
                 )
                     await bot.send_message(
                     channel,
-                    f"{i.title}\n@{channel_id}",
+                    f"{i.title}\n@{main_channel_id}",
                     file=i.url,
                     force_document=True,
                     buttons=[Button.inline('approve', b'approve'),Button.inline('reject', b'reject')]
