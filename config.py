@@ -8,7 +8,7 @@ reddit_personal_use_script = os.environ.get('REDDIT_PERSONAL_USE_SCRIPT')
 reddit_secret = os.environ.get('REDDIT_SECRET')
 agent = os.environ.get('AGENT')
 subreddit = os.environ.get('SUBREDDIT')
-channel_id = os.environ.get('APPROVAL_CHANNEL_ID')
+channel_id = int(os.environ.get('APPROVAL_CHANNEL_ID'))
 main_channel_id = os.environ.get('MAIN_CHANNEL_ID')
 
 bot = TelegramClient('bot', api_id, api_hash).start(bot_token=bot_token)
