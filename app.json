@@ -34,12 +34,19 @@
             "description": "Target Subreddit",
             "value": ""
         },
-        "CHANNEL_ID" : {
-            "description": "Target Channel",
+        "APPROVAL_CHANNEL_ID" : {
+            "description": "approval Channel",
             "value": ""
+        },
+        "MAIN_CHANNEL_ID" : {
+          "description": "Main Channel where post will be posted",
+          "value": ""
         }
     },
-    "buildpacks": [{"url": "heroku/python"}],
+    "buildpacks": [{"url": "heroku/python"}, 
+      {
+        "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
+      }],
     "formation": {
         "worker": {
           "quantity": 1,

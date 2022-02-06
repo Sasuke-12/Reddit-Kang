@@ -42,7 +42,9 @@ To run this project, you will need to add the following environment variables to
 
 - `SUBREDDIT` Target subreddit you want to post from (dont incluce `r/` simply write memes instead of r/memes for example)
 
-- `CHANNEL_ID` Target channel username(without the @) where you want to post the images (Goes without saying but add the bot to the cahannel and make admin)
+- `APPROVAL_CHANNEL_ID` approval channel username(without the @) or if its private then use channel id (Goes without saying but add the bot to the cahannel and make admin)
+
+- `MAIN_CHANNEL_ID` main channel where post will be posted after approval
 
 # Deployment 
 
@@ -58,5 +60,5 @@ To run this project, you will need to add the following environment variables to
   
 # Creator
 
-- [Miyuki](https://github.com/MiyukiKun/Reddit-Kang)
+- [Miyuki](https://github.com/MiyukiKun/)
 
