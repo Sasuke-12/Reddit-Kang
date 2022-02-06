@@ -32,8 +32,11 @@ async def kang_reddit():
                         split = i.title.split(" ")
                         response = requests.get(i.url, stream=True)
                         filename = f"{split[0]}.jpg"
-                        with open(f'{filename}', 'wb') as file:
-                            file.write(response.content)
+                        filename = filename.replace("\"", "")
+                        print(filename)
+                        if response.status_code == 200:
+                            with open(f'{filename}', 'wb') as file:
+                                file.write(response.content)
                         os.system(f'ffmpeg -i {filename} -compression_level 60 thumb.jpg')
                         thumb = 'thumb.jpg'
                         print("file downloaded")
