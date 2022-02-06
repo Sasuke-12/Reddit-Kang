@@ -26,39 +26,43 @@ async def kang_reddit():
         new = subred.new(limit = 1)
         try:
             async for i in new:
-                if i.url != last:
-                    try:
-                        print(i.url)
-                        split = i.title.split(" ")
-                        response = requests.get(i.url, stream=True)
-                        filename = f"{split[0]}.jpg"
-                        filename = filename.replace("\"", "")
-                        print(filename)
-                        if response.status_code == 200:
-                            with open(f'{filename}', 'wb') as file:
-                                file.write(response.content)
-                        os.system(f'ffmpeg -i {filename} -compression_level 60 thumb.jpg')
-                        thumb = 'thumb.jpg'
-                        print("file downloaded")
-                        await bot.send_message(
-                        channel, 
-                        f"{i.title}\n@{main_channel_id}", 
-                        file=filename
-                    )
-                        await bot.send_message(
-                        channel,
-                        f"{i.title}\n@{main_channel_id}",
-                        file= filename,
-                        force_document=True,
-                        thumb=thumb,
-                        buttons=[Button.inline('approve', b'approve'),Button.inline('reject', b'reject')]
-                    )
-                        print('uploaded')
-                        last = i.url
-                        os.remove(filename)
-                        os.remove(thumb)
-                    except Exception as e:
-                        print(e)
+                gallery = i.url.split('/')
+                if "gallery" in gallery:
+                    print('multiple images found')
+                else:    
+                    if i.url != last:
+                        try:
+                            print(i.url)
+                            split = i.title.split(" ")
+                            response = requests.get(i.url, stream=True)
+                            filename = f"{split[0]}.jpg"
+                            filename = filename.replace("\"", "")
+                            print(filename)
+                            if response.status_code == 200:
+                                with open(f'{filename}', 'wb') as file:
+                                    file.write(response.content)
+                            os.system(f'ffmpeg -i {filename} -compression_level 60 thumb.jpg')
+                            thumb = 'thumb.jpg'
+                            print("file downloaded")
+                            await bot.send_message(
+                            channel, 
+                            f"{i.title}\n@{main_channel_id}", 
+                            file=filename
+                        )
+                            await bot.send_message(
+                            channel,
+                            f"{i.title}\n@{main_channel_id}",
+                            file= filename,
+                            force_document=True,
+                            thumb=thumb,
+                            buttons=[Button.inline('approve', b'approve'),Button.inline('reject', b'reject')]
+                        )
+                            print('uploaded')
+                            last = i.url
+                            os.remove(filename)
+                            os.remove(thumb)
+                        except Exception as e:
+                            print(e)
             await asyncio.sleep(60)    
             print("nothing")
         except Exception as e:
@@ -112,17 +116,22 @@ async def click_handler(event):
     user_info = await bot.get_entity(userid)
     messages = await bot.get_messages(channel,ids=message)
     message2 = await bot.get_messages(channel,ids=message - 1)
+    # message3 = await bot.get_messages(channel,ids=145)
+
     try: 
         msg_txt = messages.message
     except:
         pass
     if event.data == b'approve':
         await bot.send_message(main_channel,message2,buttons = Button.clear())
-        await bot.send_message(main_channel,messages,buttons = [Button.inline("❤️ 0", data="e1:0:0:0"), Button.inline("👍🏻 0", data="e2:0:0:0"), Button.inline("👎🏻 0", data="e3:0:0:0")])
+        await bot.send_message(main_channel,messages, buttons=[Button.inline("❤️ 0", data="e1:0:0:0"), Button.inline("👍🏻 0", data="e2:0:0:0"), Button.inline("👎🏻 0", data="e3:0:0:0")])
+        # await bot.send_message(main_channel,message3, buttons=Button.clear())
         await bot.edit_message(channel,message,f"{msg_txt}\n\nthis message was posted by @{user_info.username}")
     elif event.data == b'reject':
         await bot.edit_message(channel,message,f"{msg_txt}\n\nthis message was rejected by @{user_info.username}")
 
+
+#,buttons = [Button.inline("❤️ 0", data="e1:0:0:0"), Button.inline("👍🏻 0", data="e2:0:0:0"), Button.inline("👎🏻 0", data="e3:0:0:0")]
 
 loop.run_until_complete(kang_reddit())
 
