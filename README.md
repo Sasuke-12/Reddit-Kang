@@ -62,4 +62,4 @@ To run this project, you will need to add the following environment variables to
 
 - [Miyuki](https://github.com/MiyukiKun/)
 
-NO FUN
+
