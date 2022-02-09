@@ -36,7 +36,10 @@ async def kang_reddit():
                             split = i.title.split(" ")
                             response = requests.get(i.url, stream=True)
                             filename = f"{split[0]}.jpg"
-                            filename = filename.replace("\'", "")
+                            garbage = ",\'\"()[]:;"
+                            for a in garbage:
+                                if a in filename:
+                                    filename = filename.replace(a, "")
                             print(filename)
                             if response.status_code == 200:
                                 with open(f'{filename}', 'wb') as file:
@@ -59,6 +62,7 @@ async def kang_reddit():
                         )
                             print('uploaded')
                             last = i.url
+                            print(last)
                             os.remove(filename)
                             os.remove(thumb)
                         except Exception as e:
