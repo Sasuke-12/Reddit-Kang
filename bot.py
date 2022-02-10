@@ -36,7 +36,7 @@ async def kang_reddit():
                             split = i.title.split(" ")
                             response = requests.get(i.url, stream=True)
                             filename = f"{split[0]}.jpg"
-                            garbage = ",\'\"()[]:;"
+                            garbage = ",\'\"()?[]:;"
                             for a in garbage:
                                 if a in filename:
                                     filename = filename.replace(a, "")
