@@ -1,11 +1,17 @@
-from config import bot, reddit_personal_use_script, reddit_secret, agent, subreddit, channel_id, main_channel_id
+from config import bot, subreddit, channel_id, main_channel_id, agent
 from telethon import events, Button
 import asyncio
-import asyncpraw
 import requests
 import os
+from PIL import Image
 
-reddit = asyncpraw.Reddit(client_id = reddit_personal_use_script, client_secret = reddit_secret, user_agent = agent)
+# Global variables
+
+reddit = "https://www.reddit.com/r/{}/new.json"
+last = {}
+max_size = 10 * 1024 * 1024
+subreddits = subreddit.split('+')
+sleep_time = 60*5
 
 try:
     channel_id = int(channel_id)
@@ -14,63 +20,118 @@ except:
 
 
 
-#buttons=[Button.inline('approve', b'approve'),Button.inline('reject', b'reject')]
-#buttons=[Button.inline("🍆 0", data="e1:0:0:0"), Button.inline("❤️ 0", data="e2:0:0:0"), Button.inline("👎🏻 0", data="e3:0:0:0")]  
+
+def get_image_url(feed ,preview_url):
+    gallery_url_prefix = 'https://i.redd.it/'
+
+    
+    if 'i.redd.it' in preview_url:
+        return preview_url
+    if 'gallery' in preview_url:
+        return gallery_url_prefix + id + '.' + feed['data']['children'][0]['media_metadata'][id]['m'].split('/')[-1]
+    
+    url = preview_url.split('?')[0]
+    url = url.replace('preview', 'i')
+    url = url.replace('b.thumbs.redditmedia.com', 'i.redd.it')
+    url = url.replace('a.thumbs.redditmedia.com', 'i.redd.it')
+    url = url.replace('external-preview.redd.it', 'i.redd.it')
+    return url
+ 
+
+def parse_feed(subreddit):
+    url = reddit.format(subreddit)
+    feed = requests.get(url, headers={'User-agent': agent}).json()
+    if "error" in feed:
+        raise Exception(f"error {feed['error']} \nmessage: {feed['message']}")
+    if feed['data']['children'][0]['data']['is_video'] is True: 
+        return None
+    if feed['data']['children'][0]['data']['url'] == last.get(subreddit):
+        return None
+    
+    feed_dict = {
+        'title': feed['data']['children'][0]['data']['title'],
+        'url': get_image_url(feed, feed['data']['children'][0]['data']['url']),
+    }
+    last[subreddit] = feed['data']['children'][0]['data']['url']
+    
+    return feed_dict
+    
+def new_filename(filename, url):
+    garbage = ",\'\"()[]:;{\\/}`"
+    for a in garbage:
+        if a in filename:
+            filename = filename.replace(a, '')
+            
+    file_ext = url.split('.')[-1]
+    filename = filename + '.' + file_ext
+    
+    return filename
+    
+
+
+def download_img(img_url, filename:str):
+    res = requests.get(img_url)
+    if res.status_code != 200:
+        return None
+    if not os.path.exists('images'):
+        os.mkdir('images')
+
+    with open(f"images/{filename}", 'wb') as f:
+        f.write(res.content)
+
+def get_thumb(filename):
+    if not os.path.exists(f"images/{filename}"):
+        return None
+    if os.path.getsize(f"images/{filename}") < max_size:
+        return None
+    img = Image.open(f"images/{filename}")
+    img.save(f"images/thumb_{filename}", "JPEG", quality=60)
+
+    return f"images/thumb_{filename}"
+
+def wipe_images():
+    if not os.path.exists('images'):
+        return
+    for file in os.listdir('images'):
+        os.remove(f"images/{file}")
+    
 
 loop = asyncio.get_event_loop()
-async def kang_reddit():
+async def loop_reddit():
     channel = await bot.get_entity(channel_id)
-    last = ''
     while True:
-        subred = await reddit.subreddit(subreddit)
-        new = subred.new(limit = 1)
-        try:
-            async for i in new:
-                gallery = i.url.split('/')
-                if "gallery" in gallery:
-                    print('multiple images found')
-                else:    
-                    if i.url != last:
-                        try:
-                            print(i.url)
-                            split = i.title.split(" ")
-                            response = requests.get(i.url, stream=True)
-                            filename = f"{split[0]}.jpg"
-                            garbage = ",\'\"()?[]:;"
-                            for a in garbage:
-                                if a in filename:
-                                    filename = filename.replace(a, "")
-                            print(filename)
-                            if response.status_code == 200:
-                                with open(f'{filename}', 'wb') as file:
-                                    file.write(response.content)
-                            os.system(f'ffmpeg -i {filename} -compression_level 60 thumb.jpg')
-                            thumb = 'thumb.jpg'
-                            print("file downloaded")
-                            await bot.send_message(
+        for subreddit in subreddits:
+            try:
+                feed = parse_feed(subreddit)
+                if feed is None:
+                    continue
+                
+                filename = new_filename(feed['title'], feed['url'])
+                download_img(feed['url'], filename)
+                
+                file_path = f"images/{filename}"
+                await bot.send_message(
                             channel, 
-                            f"{i.title}\n@{main_channel_id}", 
-                            file=filename
+                            f"{feed['title']}\n@{main_channel_id}", 
+                            file=file_path,
                         )
-                            await bot.send_message(
-                            channel,
-                            f"{i.title}\n@{main_channel_id}",
-                            file= filename,
-                            force_document=True,
-                            thumb=thumb,
-                            buttons=[Button.inline('approve', b'approve'),Button.inline('reject', b'reject')]
-                        )
-                            print('uploaded')
-                            last = i.url
-                            print(last)
-                            os.remove(filename)
-                            os.remove(thumb)
-                        except Exception as e:
-                            print(e)
-            await asyncio.sleep(60)    
-            print("nothing")
-        except Exception as e:
-            print(e)
+                await bot.send_message(
+                    channel, 
+                    f"{feed['title']}\n@{main_channel_id}", 
+                    file=file_path, 
+                    force_document=True,
+                    thumb=get_thumb(filename), 
+                    buttons=[Button.inline('approve', b'approve'),Button.inline('reject', b'reject')])
+                wipe_images()
+                
+            except Exception as e:
+                wipe_images()
+                print(e)
+                continue
+        print("sleeping")
+        await asyncio.sleep(sleep_time)
+            
+        
 
 @bot.on(events.NewMessage(pattern="/start"))
 async def start(event):
@@ -111,16 +172,14 @@ async def emoji3(event):
 
 @bot.on(events.CallbackQuery)
 async def click_handler(event):
-    # channel = await bot.get_entity(f"t.me/{channel_id}")
     channel = await bot.get_entity(channel_id)
     main_channel = await bot.get_entity(f"t.me/{main_channel_id}")
     message = event.message_id
     userid = event.query.user_id
-    # print(userid)
+
     user_info = await bot.get_entity(userid)
     messages = await bot.get_messages(channel,ids=message)
     message2 = await bot.get_messages(channel,ids=message - 1)
-    # message3 = await bot.get_messages(channel,ids=145)
 
     try: 
         msg_txt = messages.message
@@ -129,7 +188,7 @@ async def click_handler(event):
     if event.data == b'approve':
         await bot.send_message(main_channel,message2,buttons = Button.clear())
         await bot.send_message(main_channel,messages, buttons=[Button.inline("❤️ 0", data="e1:0:0:0"), Button.inline("👍🏻 0", data="e2:0:0:0"), Button.inline("👎🏻 0", data="e3:0:0:0")])
-        # await bot.send_message(main_channel,message3, buttons=Button.clear())
+        
         await bot.edit_message(channel,message,f"{msg_txt}\n\nthis message was posted by @{user_info.username}")
     elif event.data == b'reject':
         await bot.edit_message(channel,message,f"{msg_txt}\n\nthis message was rejected by @{user_info.username}")
@@ -137,7 +196,7 @@ async def click_handler(event):
 
 #,buttons = [Button.inline("❤️ 0", data="e1:0:0:0"), Button.inline("👍🏻 0", data="e2:0:0:0"), Button.inline("👎🏻 0", data="e3:0:0:0")]
 
-loop.run_until_complete(kang_reddit())
+loop.run_until_complete(loop_reddit())
 
 bot.start()
 
