@@ -34,13 +34,9 @@ To run this project, you will need to add the following environment variables to
 
 - `BOT_TOKEN` Search [@BotFather](https://t.me/botfather) in telegram.
 
-- `REDDIT_PERSONAL_USE_SCRIPT` Go [here](https://github.com/reddit-archive/reddit/wiki/OAuth2) to know how to get it.
+- `AGENT` your reddit bot user agent
 
-- `REDDIT_SECRET` you will get this in same process as above
-
-- `AGENT` you will get this in same process as above
-
-- `SUBREDDIT` Target subreddit you want to post from (dont incluce `r/` simply write memes instead of r/memes for example)
+- `SUBREDDIT` can add multiple subreddits by seperating them with '+'
 
 - `APPROVAL_CHANNEL_ID` approval channel username(without the @) or if its private then use channel id (Goes without saying but add the bot to the cahannel and make admin)
 
