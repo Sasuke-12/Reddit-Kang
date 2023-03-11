@@ -62,6 +62,8 @@ def new_filename(filename, url):
         if a in filename:
             filename = filename.replace(a, '')
             
+    cutout = "cutout in comments"
+    filename = filename.replace(cutout, '')
     file_ext = url.split('.')[-1]
     filename = filename + '.' + file_ext
     
@@ -175,9 +177,8 @@ async def click_handler(event):
     channel = await bot.get_entity(channel_id)
     main_channel = await bot.get_entity(f"t.me/{main_channel_id}")
     message = event.message_id
-    userid = event.query.user_id
+    user_info = await event.get_sender()
 
-    user_info = await bot.get_entity(userid)
     messages = await bot.get_messages(channel,ids=message)
     message2 = await bot.get_messages(channel,ids=message - 1)
 
